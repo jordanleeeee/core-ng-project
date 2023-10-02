@@ -2,6 +2,8 @@ package core.framework.internal.inject;
 
 import core.framework.inject.Inject;
 import core.framework.inject.Named;
+import core.framework.inject.Value;
+import core.framework.internal.module.PropertyManager;
 import core.framework.internal.reflect.Fields;
 import core.framework.util.Maps;
 import core.framework.util.Types;
@@ -21,7 +23,12 @@ import static core.framework.util.Strings.format;
  * @author neo
  */
 public class BeanFactory {
+    private final PropertyManager propertyManager;
     private final Map<Key, Object> beans = Maps.newHashMap();
+
+    public BeanFactory(PropertyManager propertyManager) {
+        this.propertyManager = propertyManager;
+    }
 
     public void bind(Type type, @Nullable String name, Object instance) {
         if (instance == null) throw new Error("instance must not be null");
@@ -58,13 +65,27 @@ public class BeanFactory {
             Class<?> visitorType = instance.getClass();
             while (!visitorType.equals(Object.class)) {
                 for (Field field : visitorType.getDeclaredFields()) {
-                    if (field.isAnnotationPresent(Inject.class)) {
+                    boolean injectBean = field.isAnnotationPresent(Inject.class);
+                    boolean injectProperty = field.isAnnotationPresent(Value.class);
+                    if (injectBean && injectProperty)
+                        throw new Error("cannot inject bean and property at the same time, field=" + Fields.path(field));
+                    if (injectBean) {
                         if (Modifier.isStatic(field.getModifiers()))
                             throw new Error("static field must not have @Inject, field=" + Fields.path(field));
                         if (field.trySetAccessible()) {
                             field.set(instance, lookupValue(field));
                         } else {
                             throw new Error("failed to inject field, field=" + Fields.path(field));
+                        }
+                    } else if (injectProperty) {
+                        if (Modifier.isStatic(field.getModifiers()))
+                            throw new Error("static field must not have @Property, field=" + Fields.path(field));
+                        if (field.trySetAccessible()) {
+                            Value value = field.getDeclaredAnnotation(Value.class);
+                            Object typedProperty = propertyManager.typedProperty(field, value.value(), value.json(), value.delimiter());
+                            field.set(instance, typedProperty);
+                        } else {
+                            throw new Error("failed to inject property, field=" + Fields.path(field));
                         }
                     }
                 }

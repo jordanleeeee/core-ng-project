@@ -2,6 +2,7 @@ package core.framework.internal.inject;
 
 import core.framework.inject.Inject;
 import core.framework.inject.Named;
+import core.framework.internal.module.PropertyManager;
 import core.framework.util.Types;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ class BeanFactoryTest {
 
     @BeforeEach
     void createBeanFactory() {
-        beanFactory = new BeanFactory();
+        beanFactory = new BeanFactory(new PropertyManager());
     }
 
     @Test

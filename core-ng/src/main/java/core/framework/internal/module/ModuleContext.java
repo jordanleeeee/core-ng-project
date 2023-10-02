@@ -28,7 +28,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author neo
@@ -38,15 +37,14 @@ public class ModuleContext {    // after core.framework.module.App.start(), enti
     public final StartupHook startupHook = new StartupHook();
     public final ShutdownHook shutdownHook;
     public final ReadinessProbe probe = new ReadinessProbe();
-    public final BeanFactory beanFactory = new BeanFactory();
     public final PropertyManager propertyManager = new PropertyManager();
+    public final BeanFactory beanFactory = new BeanFactory(propertyManager);
     public final StatCollector collector = new StatCollector();
     public final HTTPServer httpServer;
     public final HTTPServerConfig httpServerConfig = new HTTPServerConfig();
     public final APIController apiController = new APIController();
     public final BeanClassValidator beanClassValidator = new BeanClassValidator();
     protected final Map<String, Config> configs = Maps.newHashMap();
-    final PropertyValidator propertyValidator = new PropertyValidator();
     private BackgroundTaskExecutor backgroundTask;
 
     public ModuleContext(LogManager logManager) {
@@ -120,8 +118,7 @@ public class ModuleContext {    // after core.framework.module.App.start(), enti
     }
 
     public void validate() {
-        Set<String> keys = propertyManager.properties.keys();
-        propertyValidator.validate(keys);
+        propertyManager.validate();
 
         for (Config config : configs.values()) {
             config.validate();
@@ -129,7 +126,6 @@ public class ModuleContext {    // after core.framework.module.App.start(), enti
     }
 
     public Optional<String> property(String key) {
-        propertyValidator.usedProperties.add(key);
         return propertyManager.property(key);
     }
 

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author neo
@@ -55,5 +56,26 @@ class PropertyManagerTest {
     @Test
     void envVarName() {
         assertThat(propertyManager.envVarName("sys.kafka.uri")).isEqualTo("SYS_KAFKA_URI");
+    }
+
+    @Test
+    void validateWithNotUsedKey() {
+        propertyManager.properties.set("app.usedKey", "value");
+        propertyManager.properties.set("app.notUsedKey", "value");
+
+        propertyManager.usedProperties.add("app.usedKey");
+
+        assertThatThrownBy(() -> propertyManager.validate())
+            .isInstanceOf(Error.class)
+            .hasMessageContaining("found not used properties")
+            .hasMessageContaining("keys=[app.notUsedKey]");
+    }
+
+    @Test
+    void validate() {
+        propertyManager.properties.set("app.usedKey", "value");
+        propertyManager.usedProperties.add("app.usedKey");
+        propertyManager.validate();
+        assertThat(propertyManager.usedProperties).isNull();
     }
 }

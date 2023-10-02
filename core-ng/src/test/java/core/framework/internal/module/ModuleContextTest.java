@@ -19,6 +19,6 @@ class ModuleContextTest {
     @Test
     void property() {
         moduleContext.property("app.key");
-        assertThat(moduleContext.propertyValidator.usedProperties).contains("app.key");
+        assertThat(moduleContext.propertyManager.usedProperties).contains("app.key");
     }
 }
