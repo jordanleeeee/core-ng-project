@@ -1,6 +1,11 @@
 ## Change log
 
-### 8.1.7 (09/01/2023 - )
+### 9.0.0 (09/01/2023 - ) !!! updated to Java 21
+
+* kafka: updated client to 3.6.0
+* executor: executor().add() will create virtual thread pool, while executor.add(name, size) still create old cached thread pool
+
+(pmd only support java 21 from 7.0, and 7.0/gradle pmd 7.0 support is not released yet, refer to https://github.com/gradle/gradle/issues/24502)
 
 ### 8.1.6 (07/24/2023 - 08/16/2023)
 

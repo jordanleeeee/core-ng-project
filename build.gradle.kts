@@ -7,7 +7,7 @@ apply(plugin = "project")
 
 subprojects {
     group = "core.framework"
-    version = "8.1.7"
+    version = "9.0.0"
 
     repositories {
         maven {
@@ -20,7 +20,7 @@ subprojects {
 }
 
 val elasticVersion = "8.9.0"
-val kafkaVersion = "3.5.1"
+val kafkaVersion = "3.6.0"
 val jacksonVersion = "2.15.2"
 val junitVersion = "5.10.0"
 val mockitoVersion = "5.5.0"
@@ -42,9 +42,10 @@ project("core-ng") {
         implementation("com.squareup.okhttp3:okhttp:4.11.0")
         implementation("io.undertow:undertow-core:2.3.8.Final")
         implementation("org.apache.kafka:kafka-clients:${kafkaVersion}@jar")
-        implementation("org.xerial.snappy:snappy-java:1.1.10.1")      // used by kafka message compression
+        implementation("org.xerial.snappy:snappy-java:1.1.10.5")      // used by kafka message compression
         compileOnly("com.mysql:mysql-connector-j:${mysqlVersion}")
         compileOnly("org.jboss.logging:jboss-logging-annotations:2.2.1.Final")
+        compileOnly("com.github.spotbugs:spotbugs-annotations:4.8.0")
         testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
         testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
         testImplementation("org.assertj:assertj-core:${assertjVersion}")
