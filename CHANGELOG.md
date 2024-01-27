@@ -1,9 +1,75 @@
 ## Change log
 
-### 9.0.0 (09/01/2023 - ) !!! updated to Java 21
+### 9.0.5 (1/10/2024 - )
+
+* json: update jackson to 2.16.1
+  > refer to https://cowtowncoder.medium.com/jackson-2-16-rc1-overview-55dbb90c22d9
+* mysql: updated and patched to 8.3.0
+  > use "core.framework.mysql:mysql-connector-j:8.3.0"
+* search: update es to 8.12.0, switch es module repo to codelibs
+  > !!! integration test breaks with JDK 21.0.2, refer to https://github.com/elastic/elasticsearch/pull/104347
+  > !!! to run with JDK 21.0.2, workaround is to create EsExecutors.java and apply the fix locally
+  > !!! add codelib maven repo to project
+
+```kotlin
+maven {
+    url = uri("https://maven.codelibs.org/")
+    content {
+        includeGroup("org.codelibs.elasticsearch.module")
+    }
+}
+```
+
+### 9.0.4 (12/20/2023 - 1/9/2024)
+
+* jre: published neowu/jre:21.0.1
+* mysql: aggressively simplified mysql jdbc driver, removed unused features
+  > add slow query support, decoupled core-ng and mysql classes
+  > must use "core.framework.mysql:mysql-connector-j:8.2.0-r3"
+
+### 9.0.3 (12/12/2023 - 12/19/2023)
+
+* kafka: updated client to 3.6.1
+* db: tweaked datetime related operations for virtual thread
+  > use new date api if possible, mysql driver uses too many locks/sync for old Date/Timestamp impl
+  > it recommends to map MySQL column type: LocalDate -> DATE, LocalDateTime -> DATETIME(6), ZonedDateTime -> TIMESTAMP(6)
+  > with Timestamp, in mysql console, it is easier to use "SET @@session.time_zone" to adjust datetime value displayed
+* mysql: updated mysql driver according to profiling result
+  > use "core.framework.mysql:mysql-connector-j:8.2.0-r2"
+  > simplified and tuned used code path
+
+### 9.0.2 (12/7/2023 - 12/12/2023)
+
+* stats: dump virtual threads on high cpu
+* http: response "connection: keep-alive" header if client sends keep-alive header
+  > to be compatible with http/1.0 client, like ab (apache benchmark) with "-k"
+* mysql: patched mysql jdbc driver to support virtual thread and gcloud auth
+  > use "core.framework.mysql:mysql-connector-j:8.2.0"
+  > !!! for db-migration, pls continue to use "com.mysql:mysql-connector-j:8.2.0", as our patched version may remove unused features
+  > refer to https://github.com/neowu/mysql-connector-j
+  > refer to https://bugs.mysql.com/bug.php?id=110512
+
+### 9.0.1 (12/01/2023 - 12/7/2023)
+
+* thread: updated default virtual thread scheduler parallelism to at least 16
+  > jdbc is not fully supported virtual thread yet, allow more virtual thread unfriendly tasks to run parallel
+  > refer to https://bugs.mysql.com/bug.php?id=110512
+* kafka: updated kafka listener to virtual thread, increased default concurrency to cpu * 16
+  > now only 1 thread is pulling messages, and dispatched to {concurrency} threads
+* thread: track virtual thread count
+* http: use virtual thread to replace undertow worker pool
+
+### 9.0.0 (09/01/2023 - 12/01/2023) !!! updated to Java 21
 
 * kafka: updated client to 3.6.0
-* executor: executor().add() will create virtual thread pool, while executor.add(name, size) still create old cached thread pool
+* search: update es to 8.11.1
+* executor: removed executor config, provide builtin Executor binding, backed by virtual thread
+  > virtual thread doesn't support currentThreadCPUTime, thus if in virtual thread, action.cpu_time won't be tracked
+* sys: add "_sys/thread/virtual" diagnostic controller to print virtual thread dump
+  > refer to https://openjdk.org/jeps/444 for more info about virtual thread
+* mongo: update driver to 4.11.0
+  > improved for virtual thread, https://www.mongodb.com/docs/drivers/java/sync/current/whats-new/#std-label-version-4.11
+* mysql: update driver to 8.2.0
 
 (pmd only support java 21 from 7.0, and 7.0/gradle pmd 7.0 support is not released yet, refer to https://github.com/gradle/gradle/issues/24502)
 

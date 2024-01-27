@@ -24,18 +24,18 @@ public class LocalPluginsService extends PluginsService {
         for (Class<? extends Plugin> pluginClass : pluginClasses) {
             Plugin plugin = loadPlugin(pluginClass, settings, null);
             var descriptor = new PluginDescriptor(
-                    pluginClass.getName(),
-                    "classpath plugin",
-                    "NA",
-                    Version.CURRENT,
-                    "17",
-                    pluginClass.getName(),
-                    null,
-                    List.of(),
-                    false,
-                    false,
-                    false,
-                    false);
+                pluginClass.getName(),
+                "classpath plugin",
+                "NA",
+                Version.CURRENT.toString(),
+                "21",
+                pluginClass.getName(),
+                null,
+                List.of(),
+                false,
+                false,
+                false,
+                false);
             plugins.add(new LoadedPlugin(descriptor, plugin, Thread.currentThread().getContextClassLoader(), ModuleLayer.boot()));
         }
     }

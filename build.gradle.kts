@@ -7,25 +7,24 @@ apply(plugin = "project")
 
 subprojects {
     group = "core.framework"
-    version = "9.0.0"
+    version = "9.0.5"
 
     repositories {
         maven {
-            url = uri("https://neowu.github.io/maven-repo/")
+            url = uri("https://maven.codelibs.org/")
             content {
-                includeGroupByRegex("core\\.framework.*")       // for elasticsearch modules dependencies
+                includeGroup("org.codelibs.elasticsearch.module")
             }
         }
     }
 }
 
-val elasticVersion = "8.9.0"
-val kafkaVersion = "3.6.0"
-val jacksonVersion = "2.15.2"
-val junitVersion = "5.10.0"
-val mockitoVersion = "5.5.0"
-val assertjVersion = "3.24.2"
-val mysqlVersion = "8.1.0"
+val elasticVersion = "8.12.0"
+val kafkaVersion = "3.6.1"
+val jacksonVersion = "2.16.1"
+val junitVersion = "5.10.1"
+val mockitoVersion = "5.8.0"
+val assertjVersion = "3.25.1"
 
 project("core-ng-api") {
     apply(plugin = "lib")
@@ -40,10 +39,9 @@ project("core-ng") {
         implementation("com.fasterxml.jackson.module:jackson-module-afterburner:${jacksonVersion}")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}")
         implementation("com.squareup.okhttp3:okhttp:4.11.0")
-        implementation("io.undertow:undertow-core:2.3.8.Final")
+        implementation("io.undertow:undertow-core:2.3.10.Final")
         implementation("org.apache.kafka:kafka-clients:${kafkaVersion}@jar")
         implementation("org.xerial.snappy:snappy-java:1.1.10.5")      // used by kafka message compression
-        compileOnly("com.mysql:mysql-connector-j:${mysqlVersion}")
         compileOnly("org.jboss.logging:jboss-logging-annotations:2.2.1.Final")
         compileOnly("com.github.spotbugs:spotbugs-annotations:4.8.0")
         testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
@@ -51,7 +49,7 @@ project("core-ng") {
         testImplementation("org.assertj:assertj-core:${assertjVersion}")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-        testRuntimeOnly("org.hsqldb:hsqldb:2.7.1")
+        testRuntimeOnly("org.hsqldb:hsqldb:2.7.2")
     }
 }
 
@@ -64,7 +62,7 @@ project("core-ng-test") {
         implementation(project(":core-ng"))
         implementation("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
         implementation("org.junit.platform:junit-platform-launcher")
-        testRuntimeOnly("org.hsqldb:hsqldb:2.7.1")
+        testRuntimeOnly("org.hsqldb:hsqldb:2.7.2")
     }
 }
 
@@ -72,7 +70,7 @@ project("core-ng-mongo") {
     apply(plugin = "lib")
     dependencies {
         api(project(":core-ng"))
-        api("org.mongodb:mongodb-driver-sync:4.10.2")
+        api("org.mongodb:mongodb-driver-sync:4.11.0")
         testImplementation(project(":core-ng-test"))
     }
 }
@@ -102,11 +100,11 @@ project("core-ng-search-test") {
         implementation(project(":core-ng-test"))
         implementation(project(":core-ng-search"))
         implementation("org.elasticsearch:elasticsearch:${elasticVersion}")
-        implementation("core.framework.elasticsearch.module:transport-netty4:${elasticVersion}")
-        implementation("core.framework.elasticsearch.module:mapper-extras:${elasticVersion}")    // used by elasticsearch scaled_float
-        implementation("core.framework.elasticsearch.module:lang-painless:${elasticVersion}")
-        implementation("core.framework.elasticsearch.module:analysis-common:${elasticVersion}")  // used by elasticsearch stemmer
-        implementation("core.framework.elasticsearch.module:reindex:${elasticVersion}")          // used by elasticsearch deleteByQuery
+        implementation("org.elasticsearch.plugin:transport-netty4:${elasticVersion}")
+        implementation("org.codelibs.elasticsearch.module:mapper-extras:${elasticVersion}")         // used by elasticsearch scaled_float
+        implementation("org.codelibs.elasticsearch.module:lang-painless:${elasticVersion}")
+        implementation("org.codelibs.elasticsearch.module:analysis-common:${elasticVersion}")       // used by elasticsearch stemmer
+        implementation("org.codelibs.elasticsearch.module:reindex:${elasticVersion}@jar")           // used by elasticsearch deleteByQuery
     }
 }
 
