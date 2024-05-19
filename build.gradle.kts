@@ -7,7 +7,7 @@ apply(plugin = "project")
 
 subprojects {
     group = "core.framework"
-    version = "9.0.5"
+    version = "9.0.10"
 
     repositories {
         maven {
@@ -19,12 +19,12 @@ subprojects {
     }
 }
 
-val elasticVersion = "8.12.0"
-val kafkaVersion = "3.6.1"
-val jacksonVersion = "2.16.1"
-val junitVersion = "5.10.1"
-val mockitoVersion = "5.8.0"
-val assertjVersion = "3.25.1"
+val elasticVersion = "8.13.2"
+val kafkaVersion = "3.7.0"
+val jacksonVersion = "2.17.0"
+val junitVersion = "5.10.2"
+val mockitoVersion = "5.11.0"
+val assertjVersion = "3.25.3"
 
 project("core-ng-api") {
     apply(plugin = "lib")
@@ -34,16 +34,18 @@ project("core-ng") {
     apply(plugin = "lib")
     dependencies {
         api(project(":core-ng-api"))
-        api("org.slf4j:slf4j-api:2.0.9")
-        implementation("org.javassist:javassist:3.29.2-GA")
+        api("org.slf4j:slf4j-api:2.0.13")
+        implementation("org.javassist:javassist:3.30.2-GA")
         implementation("com.fasterxml.jackson.module:jackson-module-afterburner:${jacksonVersion}")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}")
-        implementation("com.squareup.okhttp3:okhttp:4.11.0")
-        implementation("io.undertow:undertow-core:2.3.10.Final")
+        implementation("com.squareup.okhttp3:okhttp:4.12.0@jar")
+        implementation("com.squareup.okio:okio:3.2.0")      // okio 3.3.0 has synchronization issue with virtual thread
+        implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.22")
+        implementation("io.undertow:undertow-core:2.3.10.Final")    // undertow 2.3.11+ has memory leak issue
         implementation("org.apache.kafka:kafka-clients:${kafkaVersion}@jar")
         implementation("org.xerial.snappy:snappy-java:1.1.10.5")      // used by kafka message compression
         compileOnly("org.jboss.logging:jboss-logging-annotations:2.2.1.Final")
-        compileOnly("com.github.spotbugs:spotbugs-annotations:4.8.0")
+        compileOnly("com.github.spotbugs:spotbugs-annotations:4.8.3")
         testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
         testImplementation("org.mockito:mockito-junit-jupiter:${mockitoVersion}")
         testImplementation("org.assertj:assertj-core:${assertjVersion}")
@@ -70,7 +72,7 @@ project("core-ng-mongo") {
     apply(plugin = "lib")
     dependencies {
         api(project(":core-ng"))
-        api("org.mongodb:mongodb-driver-sync:4.11.0")
+        api("org.mongodb:mongodb-driver-sync:5.0.1")
         testImplementation(project(":core-ng-test"))
     }
 }
@@ -80,7 +82,7 @@ project("core-ng-mongo-test") {
     dependencies {
         implementation(project(":core-ng-test"))
         implementation(project(":core-ng-mongo"))
-        implementation("de.bwaldvogel:mongo-java-server:1.44.0")
+        implementation("de.bwaldvogel:mongo-java-server:1.45.0")
     }
 }
 

@@ -41,6 +41,7 @@ public final class RequestBodyReader implements ChannelListener<StreamSourceChan
         }
     }
 
+    @SuppressWarnings("PMD.ExceptionAsFlowControl")   // intentional
     public void read(StreamSourceChannel channel) {
         try (PooledByteBuffer poolItem = exchange.getConnection().getByteBufferPool().allocate()) {
             ByteBuffer buffer = poolItem.getBuffer();

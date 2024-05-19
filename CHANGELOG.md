@@ -1,13 +1,106 @@
 ## Change log
 
-### 9.0.5 (1/10/2024 - )
+### 9.0.10 (4/29/2024 - )
+
+* mysql: updated and patched to 8.4.0-r2
+  > use "core.framework.mysql:mysql-connector-j:8.4.0-r2"
+* kafka: disabled client metric push
+
+### 9.0.9 (3/20/2024 - 4/18/2024)
+
+* mysql: updated and patched to 8.3.0, fixed CJException should be wrapped as SQLException
+  > make sure use "core.framework.mysql:mysql-connector-j:8.3.0-r2"
+* thread: replace all synchronized with ReentrantLock/Condition, including RateControl/ShutdownHandling/Test
+* http: convert some http error as warning
+  > undertow "UT000133: Request did not contain an Upgrade header, upgrade is not permitted"
+  > "response was sent, discard the current http transaction"
+* search: update es to 8.13.2
+* mongo: update mongo driver to 5.0.1
+
+### 9.0.8 (1/29/2024 - 3/7/2024)
+
+* kafka: update to 3.7.0
+  > update kafka docker demo with official image, refer to docker/kafka/docker-compose.yml
+* message: change message listener FAILED_TO_STOP from warning to error
+* executor: tweak shutdown handling, print all tasks not complete
+* jre: published neowu/jre:21.0.2
+* db: validate enum must have @Property for json field List<Enum>
+  > to make it consistent with JSON serialization and ensure refactoring safety
+* search: update es to 8.12.2
+  > the JDK 21.0.2 issue is fixed
+* virtualThread: update jdk.virtualThreadScheduler.parallelism to cpu * 8
+* httpClient: revert okIO back to 3.2.0
+  > okIO 3.3.0 may cause virtual thread deadlock with Http2Writer
+  > will wait to see if future version JVM or okHTTP fix the issue
+* undertow: revert back to 2.3.10
+  > undertow 2.3.11 has memory leak issue with virtual thread, will keep eye on it
+  > https://github.com/undertow-io/undertow/commit/c96363d683feb4b1066959d46be59cf2d59a7b7c
+
+!!! okIO issue
+https://github.com/square/okio/commit/f8434f575787198928a26334758ddbca9726b11c#diff-f63e8920e14cc4bf376a495cfcd1fbfa2eee7bbcdfec0ad10f2bc51237c59725
+for some reason, Http2Writer.flush (synchronized) -> AsyncTimeout$Companion.cancelScheduledTimeout (changed to reentrantLock)
+triggered VirtualThreads.park, make all other virtual threads which share same http2connection deadlocked
+
+```
+#20985 "kafka-listener-19336" virtual
+      java.base/jdk.internal.misc.Unsafe.park(Native Method)
+      java.base/java.lang.VirtualThread.parkOnCarrierThread(Unknown Source)
+      java.base/java.lang.VirtualThread.park(Unknown Source)
+      java.base/java.lang.System$2.parkVirtualThread(Unknown Source)
+      java.base/jdk.internal.misc.VirtualThreads.park(Unknown Source)
+      java.base/java.util.concurrent.locks.LockSupport.park(Unknown Source)
+      java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(Unknown Source)
+      java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(Unknown Source)
+      java.base/java.util.concurrent.locks.ReentrantLock$Sync.lock(Unknown Source)
+      java.base/java.util.concurrent.locks.ReentrantLock.lock(Unknown Source)
+      okio.AsyncTimeout$Companion.cancelScheduledTimeout(AsyncTimeout.kt:273)
+      okio.AsyncTimeout$Companion.access$cancelScheduledTimeout(AsyncTimeout.kt:204)
+      okio.AsyncTimeout.exit(AsyncTimeout.kt:62)
+      okio.AsyncTimeout$sink$1.write(AsyncTimeout.kt:341)
+      okio.RealBufferedSink.flush(RealBufferedSink.kt:268)
+      okhttp3.internal.http2.Http2Writer.flush(Http2Writer.kt:120)
+      okhttp3.internal.http2.Http2Connection.flush(Http2Connection.kt:408)
+      okhttp3.internal.http2.Http2Stream$FramingSink.close(Http2Stream.kt:624)
+      okio.ForwardingSink.close(ForwardingSink.kt:37)
+      okhttp3.internal.connection.Exchange$RequestBodySink.close(Exchange.kt:247)
+      okio.RealBufferedSink.close(RealBufferedSink.kt:287)
+
+// rest similar threads are all locked      
+#20984 "kafka-listener-19335" virtual
+      okhttp3.internal.http2.Http2Connection.newStream(Http2Connection.kt:240)
+      okhttp3.internal.http2.Http2Connection.newStream(Http2Connection.kt:225)
+      okhttp3.internal.http2.Http2ExchangeCodec.writeRequestHeaders(Http2ExchangeCodec.kt:76)
+      okhttp3.internal.connection.Exchange.writeRequestHeaders(Exchange.kt:63)
+#20974 "kafka-listener-19325" virtual
+      okhttp3.internal.http2.Http2Writer.flush(Http2Writer.kt:119)
+      okhttp3.internal.http2.Http2Connection.flush(Http2Connection.kt:408)
+      okhttp3.internal.http2.Http2Stream$FramingSink.close(Http2Stream.kt:624)
+      okio.ForwardingSink.close(ForwardingSink.kt:37)
+      okhttp3.internal.connection.Exchange$RequestBodySink.close(Exchange.kt:247)
+      okio.RealBufferedSink.close(RealBufferedSink.kt:287)
+      okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:63)
+      okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:109)
+  #20995 "kafka-listener-19346" virtual
+      okhttp3.internal.http2.Http2Writer.data(Http2Writer.kt:150)
+      okhttp3.internal.http2.Http2Connection.writeData(Http2Connection.kt:332)
+      okhttp3.internal.http2.Http2Stream$FramingSink.emitFrame(Http2Stream.kt:565)
+      okhttp3.internal.http2.Http2Stream$FramingSink.close(Http2Stream.kt:612)
+      okio.ForwardingSink.close(ForwardingSink.kt:37)
+      okhttp3.internal.connection.Exchange$RequestBodySink.close(Exchange.kt:247)
+      okio.RealBufferedSink.close(RealBufferedSink.kt:287)      
+```
+
+### 9.0.5 (1/10/2024 - 1/29/2024)
 
 * json: update jackson to 2.16.1
   > refer to https://cowtowncoder.medium.com/jackson-2-16-rc1-overview-55dbb90c22d9
 * mysql: updated and patched to 8.3.0
-  > use "core.framework.mysql:mysql-connector-j:8.3.0"
+  > use "core.framework.mysql:mysql-connector-j:8.3.0-r2"
+* db: support azure IAM auth
+  > azure mysql flexible server supports IAM service account auth, to use access token instead of user/password
+  > set db user to "iam/azure" to use azure iam auth
 * search: update es to 8.12.0, switch es module repo to codelibs
-  > !!! integration test breaks with JDK 21.0.2, refer to https://github.com/elastic/elasticsearch/pull/104347
+  > !!! integration test breaks with JDK 21.0.2 (even with old version of es lib), refer to https://github.com/elastic/elasticsearch/pull/104347
   > !!! to run with JDK 21.0.2, workaround is to create EsExecutors.java and apply the fix locally
   > !!! add codelib maven repo to project
 

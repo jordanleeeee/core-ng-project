@@ -19,7 +19,7 @@ subprojects {
 
     checkstyle {
         dependencies {
-            checkstyle("com.puppycrawl.tools:checkstyle:10.12.5")
+            checkstyle("com.puppycrawl.tools:checkstyle:10.15.0")
             checkstyle("com.github.sevntu-checkstyle:sevntu-checks:1.44.1")
         }
 
@@ -47,7 +47,7 @@ subprojects {
     pmd {
         ruleSets = listOf()
         ruleSetFiles = rootProject.files("buildSrc/src/main/check/pmd.xml")
-        toolVersion = "6.55.0"
+        toolVersion = "7.1.0"
         isConsoleOutput = true
 
         tasks.withType<Pmd> {
@@ -57,13 +57,13 @@ subprojects {
 
     spotbugs {
         dependencies {
-            spotbugsPlugins("com.mebigfatguy.sb-contrib:sb-contrib:7.6.0")
+            spotbugsPlugins("com.mebigfatguy.sb-contrib:sb-contrib:7.6.4")
         }
 
-        toolVersion.set("4.8.2")
-        reportLevel.set(Confidence.LOW)
-        extraArgs.set(listOf("-longBugCodes"))
-        includeFilter.set(rootProject.file("buildSrc/src/main/check/spotbugs.xml"))
+        toolVersion = "4.8.4"
+        reportLevel = Confidence.LOW
+        extraArgs = listOf("-longBugCodes")
+        includeFilter = rootProject.file("buildSrc/src/main/check/spotbugs.xml")
     }
 
     jacoco {
@@ -71,10 +71,10 @@ subprojects {
 
         tasks.named<JacocoReport>("testCodeCoverageReport") {
             reports {
-                xml.required.set(true)
-                xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/report.xml").get())
-                html.required.set(true)
-                csv.required.set(false)
+                xml.required = true
+                xml.outputLocation = layout.buildDirectory.file("reports/jacoco/report.xml").get()
+                html.required = true
+                csv.required = false
             }
         }
     }
