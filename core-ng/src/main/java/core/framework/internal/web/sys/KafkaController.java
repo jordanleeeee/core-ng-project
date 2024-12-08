@@ -63,9 +63,11 @@ public class KafkaController {
         @SuppressWarnings("unchecked")
         MessageProcess<Object> bulkProcess = (MessageProcess<Object>) listener.bulkProcesses.get(topic);
         if (process != null) {
+            if (process.warnings != null) actionLog.initializeWarnings(process.warnings);
             Object message = message(topic, key, body, process, actionLog);
             process.handler().handle(key, message);
         } else if (bulkProcess != null) {
+            if (bulkProcess.warnings != null) actionLog.initializeWarnings(bulkProcess.warnings);
             Object message = message(topic, key, body, bulkProcess, actionLog);
             bulkProcess.bulkHandler().handle(List.of(new Message<>(key, message)));
         } else {

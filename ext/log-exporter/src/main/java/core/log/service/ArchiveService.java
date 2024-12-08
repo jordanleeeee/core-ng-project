@@ -60,7 +60,11 @@ public class ArchiveService {
         shell.execute("rm", "-f", eventFilePath.toString());
 
         Path traceLogDirPath = Path.of(logDir.toString(), Strings.format("/trace/{}", date));
-        shell.execute("rm", "-rf", traceLogDirPath.toString());
+        if (Files.exists(traceLogDirPath)) {
+            String path = traceLogDirPath.toString();
+            shell.execute("find", path, "-type", "f", "-delete");
+            shell.execute("find", path, "-type", "d", "-delete");
+        }
     }
 
     public String actionLogPath(LocalDate date) {

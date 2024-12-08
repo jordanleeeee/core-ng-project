@@ -5,7 +5,6 @@ import core.framework.internal.json.JSONReader;
 import core.framework.internal.json.JSONWriter;
 import core.framework.internal.validate.ValidationException;
 import core.framework.internal.validate.Validator;
-import core.framework.util.Strings;
 import core.framework.web.exception.BadRequestException;
 import core.framework.web.rate.LimitRate;
 import core.framework.web.websocket.Channel;
@@ -16,25 +15,25 @@ import java.io.IOException;
 /**
  * @author neo
  */
-public class ChannelHandler<T, V> {
+public class ChannelSupport<T, V> {
     final ChannelListener<T, V> listener;
     final LimitRate limitRate;  // only supported annotation currently
+    final WebSocketContextImpl<V> context;
 
     private final JSONReader<T> clientMessageReader;
     private final Validator<T> clientMessageValidator;
 
-    private final Class<V> serverMessageClass;
     private final JSONWriter<V> serverMessageWriter;
     private final Validator<V> serverMessageValidator;
 
-    public ChannelHandler(Class<T> clientMessageClass, Class<V> serverMessageClass, ChannelListener<T, V> listener) {
+    public ChannelSupport(Class<T> clientMessageClass, Class<V> serverMessageClass, ChannelListener<T, V> listener, WebSocketContextImpl<V> context) {
         clientMessageReader = JSONMapper.reader(clientMessageClass);
         clientMessageValidator = Validator.of(clientMessageClass);
 
-        this.serverMessageClass = serverMessageClass;
         serverMessageWriter = JSONMapper.writer(serverMessageClass);
         serverMessageValidator = Validator.of(serverMessageClass);
 
+        this.context = context;
         this.listener = listener;
         try {
             limitRate = listener.getClass().getDeclaredMethod("onMessage", Channel.class, Object.class).getDeclaredAnnotation(LimitRate.class);
@@ -44,10 +43,6 @@ public class ChannelHandler<T, V> {
     }
 
     String toServerMessage(V message) {
-        if (message == null) throw new Error("message must not be null");
-        if (!serverMessageClass.equals(message.getClass())) {
-            throw new Error(Strings.format("message class does not match, expected={}, actual={}", serverMessageClass.getCanonicalName(), message.getClass().getCanonicalName()));
-        }
         serverMessageValidator.validate(message, false);
         return serverMessageWriter.toJSONString(message);
     }

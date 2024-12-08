@@ -84,7 +84,7 @@ public final class ElasticSearchTypeImpl<T> implements ElasticSearchType<T> {
         int hits = 0;
         try {
             var searchRequest = co.elastic.clients.elasticsearch.core.SearchRequest.of(builder -> {
-                builder.index(index).query(request.query).aggregations(request.aggregations).sort(request.sorts)
+                builder.index(index).query(request.query).runtimeMappings(request.runtimeFields).aggregations(request.aggregations).sort(request.sorts)
                     .searchType(request.type)
                     .from(request.skip)
                     .size(request.limit)
@@ -227,7 +227,7 @@ public final class ElasticSearchTypeImpl<T> implements ElasticSearchType<T> {
             Map<String, JsonData> params = request.params == null ? Map.of() : request.params.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, value -> JsonData.of(value.getValue())));
             UpdateResponse<T> response = elasticSearch.client.update(builder -> builder.index(index)
                 .id(request.id)
-                .script(s -> s.inline(i -> i.source(request.script).params(params)))
+                .script(s -> s.source(request.script).params(params))
                 .retryOnConflict(request.retryOnConflict), documentClass);
             updated = response.result() == Result.Updated;
             return updated;

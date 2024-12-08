@@ -1,43 +1,62 @@
 package core.framework.search.query;
 
 import co.elastic.clients.elasticsearch._types.FieldValue;
-import co.elastic.clients.elasticsearch._types.query_dsl.IdsQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.TermsQuery;
-import co.elastic.clients.json.JsonData;
+import co.elastic.clients.elasticsearch._types.query_dsl.DateRangeQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.NumberRangeQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
  * @author neo
  */
 public class Queries {
-    public static IdsQuery ids(List<String> ids) {
-        return new IdsQuery.Builder().values(ids).build();
+    public static Query ids(List<String> ids) {
+        return QueryBuilders.ids().values(ids).build()._toQuery();
     }
 
-    public static MatchQuery match(String field, String value) {
-        return new MatchQuery.Builder().field(field).query(FieldValue.of(value)).build();
+    public static Query match(String field, String value) {
+        return QueryBuilders.match().field(field).query(value).build()._toQuery();
     }
 
-    public static <T> RangeQuery range(String field, T from, T to) {
-        var builder = new RangeQuery.Builder().field(field);
-        if (from != null) builder.gte(JsonData.of(from));
-        if (to != null) builder.lte(JsonData.of(to));
-        return builder.build();
+    public static Query matchPhase(String field, String query) {
+        return QueryBuilders.matchPhrase().field(field).query(query).build()._toQuery();
     }
 
-    public static TermsQuery terms(String field, List<String> values) {
-        return new TermsQuery.Builder().field(field).terms(t -> t.value(values.stream().map(FieldValue::of).toList())).build();
+    public static Query range(String field, ZonedDateTime from, ZonedDateTime to) {
+        var range = new DateRangeQuery.Builder().field(field);
+        if (from != null) range.gte(from.format(DateTimeFormatter.ISO_INSTANT));
+        if (to != null) range.lte(to.format(DateTimeFormatter.ISO_INSTANT));
+        return QueryBuilders.range().date(range.build()).build()._toQuery();
     }
 
-    public static TermQuery term(String field, String value) {
-        return new TermQuery.Builder().field(field).value(FieldValue.of(value)).build();
+    public static Query range(String field, LocalDate from, LocalDate to) {
+        var range = new DateRangeQuery.Builder().field(field);
+        if (from != null) range.gte(from.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        if (to != null) range.lte(to.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        return QueryBuilders.range().date(range.build()).build()._toQuery();
     }
 
-    public static TermQuery term(String field, Boolean value) {
-        return new TermQuery.Builder().field(field).value(FieldValue.of(value)).build();
+    public static Query range(String field, Number from, Number to) {
+        var range = new NumberRangeQuery.Builder().field(field);
+        if (from != null) range.gte(from.doubleValue());
+        if (to != null) range.lte(to.doubleValue());
+        return QueryBuilders.range().number(range.build()).build()._toQuery();
+    }
+
+    public static Query terms(String field, List<String> values) {
+        return QueryBuilders.terms().field(field).terms(t -> t.value(values.stream().map(FieldValue::of).toList())).build()._toQuery();
+    }
+
+    public static Query term(String field, String value) {
+        return QueryBuilders.term().field(field).value(FieldValue.of(value)).build()._toQuery();
+    }
+
+    public static Query term(String field, boolean value) {
+        return QueryBuilders.term().field(field).value(FieldValue.of(value)).build()._toQuery();
     }
 }

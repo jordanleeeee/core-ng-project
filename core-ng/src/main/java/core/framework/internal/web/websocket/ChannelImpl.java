@@ -22,30 +22,30 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ChannelImpl<T, V> implements Channel<V>, Channel.Context {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChannelImpl.class);
+
     final String id = UUID.randomUUID().toString();
+    final Set<String> groups = Sets.newConcurrentHashSet();
     final long startTime = System.nanoTime();
-    final Set<String> rooms = Sets.newConcurrentHashSet();
-    final ChannelHandler<T, V> handler;
+    final ChannelSupport<T, V> support;
+
     private final WebSocketChannel channel;
     private final Map<String, Object> context = new ConcurrentHashMap<>();
-    private final WebSocketContextImpl webSocketContext;
-    String action;
+    String path;
     String clientIP;
     String refId;
     Trace trace;
     @Nullable
     CloseMessage closeMessage;
 
-    ChannelImpl(WebSocketChannel channel, WebSocketContextImpl webSocketContext, ChannelHandler<T, V> handler) {
+    ChannelImpl(WebSocketChannel channel, ChannelSupport<T, V> support) {
         this.channel = channel;
-        this.webSocketContext = webSocketContext;
-        this.handler = handler;
+        this.support = support;
     }
 
     @Override
     public void send(V message) {
         var watch = new StopWatch();
-        String text = handler.toServerMessage(message);
+        String text = support.toServerMessage(message);
 
         // refer to io.undertow.websockets.core.WebSocketChannel.send(WebSocketFrameType),
         // in concurrent env, one thread can still get hold of channel from context right before channel close listener removes it from context
@@ -58,7 +58,7 @@ public class ChannelImpl<T, V> implements Channel<V>, Channel.Context {
         } finally {
             long elapsed = watch.elapsed();
             ActionLogContext.track("ws", elapsed, 0, text.length());
-            LOGGER.debug("send ws message, id={}, text={}, elapsed={}", id, text, elapsed);     // not mask, assume ws message not containing sensitive info, the text can be json or plain text
+            LOGGER.debug("send ws message, channel={}, text={}, elapsed={}", id, text, elapsed);     // not mask, assume ws message not containing sensitive info, the text can be json or plain text
         }
     }
 
@@ -70,18 +70,18 @@ public class ChannelImpl<T, V> implements Channel<V>, Channel.Context {
         } finally {
             long elapsed = watch.elapsed();
             ActionLogContext.track("ws", elapsed, 0, 1);    // close message size = 1
-            LOGGER.debug("close ws channel, id={}, elapsed={}", id, elapsed);
+            LOGGER.debug("close ws channel, channel={}, elapsed={}", id, elapsed);
         }
     }
 
     @Override
-    public void join(String room) {
-        webSocketContext.join(this, room);
+    public void join(String group) {
+        support.context.join(this, group);
     }
 
     @Override
-    public void leave(String room) {
-        webSocketContext.leave(this, room);
+    public void leave(String group) {
+        support.context.leave(this, group);
     }
 
     @Override

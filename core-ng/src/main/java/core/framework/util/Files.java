@@ -73,12 +73,12 @@ public final class Files {
 
     public static Path tempFile() {
         String tempDir = System.getProperty("java.io.tmpdir");
-        return Paths.get(tempDir + "/" + UUID.randomUUID().toString() + ".tmp");
+        return Paths.get(tempDir + "/" + UUID.randomUUID() + ".tmp");
     }
 
     public static Path tempDir() {
         String tempDir = System.getProperty("java.io.tmpdir");
-        Path path = Paths.get(tempDir + "/" + UUID.randomUUID().toString());
+        Path path = Paths.get(tempDir + "/" + UUID.randomUUID());
         createDir(path);
         return path;
     }

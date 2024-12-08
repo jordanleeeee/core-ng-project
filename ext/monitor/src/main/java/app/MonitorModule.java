@@ -66,9 +66,9 @@ public class MonitorModule extends Module {
     }
 
     private void configureKubeJob(MessagePublisher<StatMessage> publisher, MonitorConfig.KubeConfig config) {
-        KubeClient kubeClient = bind(new KubeClient());
-        kubeClient.initialize();
-        var job = new KubeMonitorJob(config.namespaces, kubeClient, publisher);
+        var client = bind(new KubeClient());
+        client.initialize();
+        var job = new KubeMonitorJob(config.namespaces, client, publisher);
         schedule().fixedRate("monitor:kube", job, Duration.ofSeconds(30));  // not check pod too often
     }
 
@@ -91,7 +91,7 @@ public class MonitorModule extends Module {
             String app = entry.getKey();
             MonitorConfig.MongoConfig mongoConfig = entry.getValue();
 
-            String connectionString = Strings.format("mongodb://{}/?socketTimeoutMS=10000&serverSelectionTimeoutMS=0&appName={}", mongoConfig.host, LogManager.APP_NAME);
+            String connectionString = Strings.format("mongodb://{}/?socketTimeoutMS=10000&serverSelectionTimeoutMS=5000&appName={}", mongoConfig.host, LogManager.APP_NAME);
             MongoClient client = MongoClients.create(new ConnectionString(connectionString));
 
             var job = new MongoMonitorJob(client, app, mongoConfig.host, publisher);

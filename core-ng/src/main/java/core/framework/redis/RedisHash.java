@@ -1,6 +1,7 @@
 package core.framework.redis;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.Map;
 
 /**
@@ -19,4 +20,7 @@ public interface RedisHash {
     long increaseBy(String key, String field, long increment);
 
     long del(String key, String... fields);
+
+    // supported by redis since 7.4
+    void expire(String key, String field, Duration duration);
 }

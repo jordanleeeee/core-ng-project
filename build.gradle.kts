@@ -7,24 +7,14 @@ apply(plugin = "project")
 
 subprojects {
     group = "core.framework"
-    version = "9.0.10"
-
-    repositories {
-        maven {
-            url = uri("https://maven.codelibs.org/")
-            content {
-                includeGroup("org.codelibs.elasticsearch.module")
-            }
-        }
-    }
+    version = "9.1.5"
 }
 
-val elasticVersion = "8.13.2"
-val kafkaVersion = "3.7.0"
-val jacksonVersion = "2.17.0"
-val junitVersion = "5.10.2"
-val mockitoVersion = "5.11.0"
-val assertjVersion = "3.25.3"
+val elasticVersion = "8.15.0"
+val jacksonVersion = "2.17.2"
+val junitVersion = "5.11.3"
+val mockitoVersion = "5.14.2"
+val assertjVersion = "3.26.3"
 
 project("core-ng-api") {
     apply(plugin = "lib")
@@ -34,16 +24,15 @@ project("core-ng") {
     apply(plugin = "lib")
     dependencies {
         api(project(":core-ng-api"))
-        api("org.slf4j:slf4j-api:2.0.13")
+        api("org.slf4j:slf4j-api:2.0.16")
         implementation("org.javassist:javassist:3.30.2-GA")
         implementation("com.fasterxml.jackson.module:jackson-module-afterburner:${jacksonVersion}")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}")
         implementation("com.squareup.okhttp3:okhttp:4.12.0@jar")
-        implementation("com.squareup.okio:okio:3.2.0")      // okio 3.3.0 has synchronization issue with virtual thread
-        implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.22")
-        implementation("io.undertow:undertow-core:2.3.10.Final")    // undertow 2.3.11+ has memory leak issue
-        implementation("org.apache.kafka:kafka-clients:${kafkaVersion}@jar")
-        implementation("org.xerial.snappy:snappy-java:1.1.10.5")      // used by kafka message compression
+        implementation("com.squareup.okio:okio:3.2.0")              // okio 3.3.0 has synchronization issue with virtual thread
+        implementation("org.jetbrains.kotlin:kotlin-stdlib:2.0.20")
+        implementation("io.undertow:undertow-core:2.3.10.Final")    // undertow 2.3.11+ has memory leak issue, 2.3.17+ has much worse memory consumption
+        implementation("org.apache.kafka:kafka-clients:3.9.0")
         compileOnly("org.jboss.logging:jboss-logging-annotations:2.2.1.Final")
         compileOnly("com.github.spotbugs:spotbugs-annotations:4.8.3")
         testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
@@ -51,7 +40,7 @@ project("core-ng") {
         testImplementation("org.assertj:assertj-core:${assertjVersion}")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-        testRuntimeOnly("org.hsqldb:hsqldb:2.7.2")
+        testRuntimeOnly("org.hsqldb:hsqldb:2.7.3")
     }
 }
 
@@ -64,7 +53,7 @@ project("core-ng-test") {
         implementation(project(":core-ng"))
         implementation("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
         implementation("org.junit.platform:junit-platform-launcher")
-        testRuntimeOnly("org.hsqldb:hsqldb:2.7.2")
+        testRuntimeOnly("org.hsqldb:hsqldb:2.7.3")
     }
 }
 
@@ -72,7 +61,7 @@ project("core-ng-mongo") {
     apply(plugin = "lib")
     dependencies {
         api(project(":core-ng"))
-        api("org.mongodb:mongodb-driver-sync:5.0.1")
+        api("org.mongodb:mongodb-driver-sync:5.1.2")
         testImplementation(project(":core-ng-test"))
     }
 }

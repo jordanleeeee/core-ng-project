@@ -25,6 +25,12 @@ subprojects {
 
     repositories {
         mavenCentral()
+        maven {
+            url = uri("https://maven.codelibs.org/")
+            content {
+                includeGroup("org.codelibs.elasticsearch.module")
+            }
+        }
         mavenLocal()
     }
 
@@ -35,7 +41,11 @@ subprojects {
         failFast = true
         testLogging.showStandardStreams = true
         testLogging.exceptionFormat = TestExceptionFormat.FULL
-        jvmArgs("-XX:+EnableDynamicAgentLoading")
+
+        var mockitoAgent: File? = configurations.testRuntimeClasspath.get().resolve().find { it.name.startsWith("mockito-core-") }
+        if (mockitoAgent != null) {
+            jvmArgs("-javaagent:${mockitoAgent}")
+        }
     }
 
     tasks.register("mkdir") {
